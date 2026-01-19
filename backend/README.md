@@ -1,29 +1,29 @@
 # PDF Summary AI - Backend
 
-FastAPI backend для завантаження та резюмування PDF документів з використанням OpenAI API.
+FastAPI backend for uploading and summarizing PDF documents using OpenAI API.
 
-## Особливості
+## Features
 
-- ✅ Завантаження PDF файлів (до 50MB)
-- ✅ Парсинг PDF з підтримкою тексту, таблиць та зображень (OCR)
-- ✅ Генерація резюме через OpenAI API
-- ✅ Історія останніх 5 оброблених документів
-- ✅ Docker підтримка
+- PDF Upload (up to 50MB)
+- PDF Parsing with text, tables, and images (OCR)
+- AI Summary Generation via OpenAI API
+- History of last 5 processed documents
+- Docker support
 
-## Технології
+## Tech Stack
 
-- **FastAPI** - веб-фреймворк
-- **pdfplumber** - парсинг PDF текстів та таблиць
-- **pdf2image + pytesseract** - OCR для зображень в PDF
-- **OpenAI API** - генерація резюме
-- **SQLite** - персистентне зберігання історії документів
-- **Docker** - контейнеризація
+- **FastAPI** - Web framework
+- **pdfplumber** - PDF text and table extraction
+- **pdf2image + pytesseract** - OCR for images
+- **OpenAI API** - Summary generation
+- **SQLite** - Persistent storage for document history
+- **Docker** - Containerization
 
-## Встановлення
+## Installation
 
-### Локальне встановлення
+### Local Setup
 
-1. Встановіть системні залежності:
+1. Install system dependencies:
 ```bash
 # Ubuntu/Debian
 sudo apt-get update
@@ -33,180 +33,83 @@ sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-eng
 brew install poppler tesseract
 ```
 
-2. Створіть віртуальне середовище:
+2. Create virtual environment:
 ```bash
 python3 -m venv venv
 source venv/bin/activate  # Linux/macOS
-# або
-venv\Scripts\activate  # Windows
 ```
 
-3. Встановіть залежності:
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Створіть файл `.env`:
+4. Create `.env` file in project root:
 ```bash
-cp .env.example .env
-# Відредагуйте .env та додайте ваш OPENAI_API_KEY
-# SAVE_PDF_FILES=true - якщо хочете зберігати PDF файли на диску
+cp ../.env.example ../.env
+# Edit .env and add your OPENAI_API_KEY
 ```
 
-5. Запустіть сервер:
+5. Run server:
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### Docker
 
-1. Створіть файл `.env` в корені проекту:
-```bash
-OPENAI_API_KEY=your_api_key_here
-OPENAI_MODEL=gpt-4o-mini
-```
+See main [README.md](../README.md) for Docker setup instructions.
 
-2. Запустіть через docker-compose:
-```bash
-docker-compose up --build
-```
+## API Documentation
 
-## API Документація
-
-Після запуску сервера, документація доступна за адресою:
+After starting the server, documentation is available at:
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
 
 ### Endpoints
 
-#### `POST /api/v1/upload`
-Завантажити PDF файл та отримати резюме.
+- `POST /api/v1/upload` - Upload PDF and get summary
+- `GET /api/v1/history` - Get last 5 documents
+- `DELETE /api/v1/history/{doc_id}` - Delete document
+- `GET /health` - Health check
+- `GET /` - API information
 
-**Request:**
-- `file`: PDF файл (multipart/form-data)
-
-**Response:**
-```json
-{
-  "filename": "document.pdf",
-  "summary": "Резюме документа...",
-  "uploaded_at": "2024-01-01T12:00:00"
-}
-```
-
-#### `GET /api/v1/history`
-Отримати історію останніх 5 оброблених документів.
-
-**Response:**
-```json
-[
-  {
-    "filename": "document.pdf",
-    "summary": "Резюме...",
-    "uploaded_at": "2024-01-01T12:00:00",
-    "file_size_mb": 2.5
-  }
-]
-```
-
-#### `GET /health`
-Перевірка стану сервера.
-
-#### `GET /`
-Інформація про API та версію.
-
-## Структура проекту
+## Project Structure
 
 ```
 backend/
-├── main.py                    # Точка входу FastAPI
+├── main.py                    # FastAPI entry point
 ├── app/
-│   ├── api/                   # API layer
-│   │   └── routes/
-│   │       ├── documents.py   # Документи (upload, history)
-│   │       └── health.py      # Health check
-│   ├── core/                  # Ядро додатку
-│   │   ├── config.py          # Налаштування (з .env)
-│   │   └── dependencies.py    # Dependency injection
-│   ├── models/                # Database models (domain models)
-│   │   └── document.py        # Document model (DB structure)
-│   ├── schemas/               # API schemas (DTO - Data Transfer Objects)
-│   │   └── documents.py       # SummaryResponse, HistoryItem (API I/O)
-│   └── services/              # Бізнес-логіка
-│       ├── pdf_parser.py      # Парсинг PDF
-│       ├── openai_service.py  # Інтеграція з OpenAI
-│       └── storage.py         # Зберігання історії (SQLite)
+│   ├── api/routes/           # API endpoints
+│   ├── core/                 # Configuration & dependencies
+│   ├── models/               # Database models
+│   ├── schemas/              # API schemas
+│   └── services/             # Business logic
 ├── requirements.txt
-├── Dockerfile
-└── README.md
+└── Dockerfile
 ```
 
-### Архітектура
+## Configuration
 
-Проект організований за принципами **Clean Architecture** та **Separation of Concerns**:
+Environment variables (set in root `.env` file):
+- `OPENAI_API_KEY` (required) - OpenAI API key
+- `OPENAI_MODEL` (optional) - Model to use (default: `gpt-4o-mini`)
+- `SAVE_PDF_FILES` (optional) - Save PDFs to disk (default: `false`)
 
-- **`app/api/routes/`** - HTTP endpoints, обробка запитів
-- **`app/core/`** - Конфігурація та dependency injection
-- **`app/models/`** - Доменні моделі (представлення даних з БД)
-- **`app/schemas/`** - Pydantic схеми для API (request/response DTO)
-- **`app/services/`** - Бізнес-логіка, незалежна від API
+## PDF Processing
 
-### Різниця між Models та Schemas
+The parser supports:
+1. **Text** - Direct text extraction
+2. **Tables** - Automatic table detection and formatting
+3. **Images** - OCR via Tesseract for scanned PDFs
 
-- **`app/models/`** - внутрішні моделі даних, що представляють структуру БД та доменну логіку
-  - Використовуються всередині сервісів
-  - Можуть містити додаткову логіку валідації
-  - Приклад: `Document` - повна модель з БД (id, file_path, тощо)
+## Storage
 
-- **`app/schemas/`** - моделі для API, що визначають формат запитів/відповідей
-  - Використовуються в routes для валідації HTTP запитів/відповідей
-  - Можуть бути спрощеними версіями models (без внутрішніх полів)
-  - Приклад: `HistoryItem` - тільки те, що потрібно клієнту (без id, file_path)
+- **SQLite database** (`documents.db`) - Stores document metadata
+- **Uploads folder** (optional) - Stores PDF files if `SAVE_PDF_FILES=true`
+- **Auto cleanup** - Old documents (beyond 5) are automatically removed
 
-## Обробка PDF
+## Limitations
 
-Парсер підтримує:
-1. **Текст** - пряме витягування тексту з PDF
-2. **Таблиці** - автоматичне розпізнавання та форматування таблиць
-3. **Зображення** - OCR через Tesseract для PDF зі сканованими сторінками
-
-## Налаштування
-
-### Змінні оточення
-
-- `OPENAI_API_KEY` (обов'язково) - API ключ OpenAI
-- `OPENAI_MODEL` (опціонально) - модель OpenAI (за замовчуванням: `gpt-4o-mini`)
-- `SAVE_PDF_FILES` (опціонально) - зберігати PDF файли на диску (`true`/`false`, за замовчуванням: `false`)
-
-## Зберігання даних
-
-### Система зберігання
-
-- **SQLite база даних** (`documents.db`) - зберігає метадані документів (filename, summary, uploaded_at, file_size_mb)
-- **Папка `uploads/`** (опціонально) - зберігає PDF файли, якщо `SAVE_PDF_FILES=true`
-- **Персистентність** - дані зберігаються між перезапусками сервера
-- **Автоматичне очищення** - старі документи (понад 5) автоматично видаляються
-
-### Що зберігається
-
-1. **Завжди зберігається:**
-   - Назва файлу
-   - Згенероване резюме
-   - Дата завантаження
-   - Розмір файлу
-
-2. **Опціонально зберігається:**
-   - Оригінальний PDF файл (якщо `SAVE_PDF_FILES=true`)
-
-## Обмеження
-
-- Максимальний розмір файлу: 50MB
-- Максимальна кількість сторінок: 100 (рекомендовано)
-- Історія: останні 5 документів (зберігаються в SQLite)
-
-## Розробка
-
-Для розробки з автоматичним перезавантаженням:
-```bash
-uvicorn main:app --reload
-```
+- Maximum file size: 50MB
+- Maximum pages: 100 (recommended)
+- History: Last 5 documents
